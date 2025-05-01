@@ -6,7 +6,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ✅ SQLite DB connection
+
 const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database('./backend.db', (err) => {
   if (err) {
@@ -15,9 +15,9 @@ const db = new sqlite3.Database('./backend.db', (err) => {
     console.log('Connected to the backend database.');
   }
 });
-//module.exports = db; // for routes to use
 
-// ✅ Instructor Registration
+
+
 app.post('/api/instructor/register', async (req, res) => {
   const { firstName, lastName, email, password } = req.body;
   const hashed = await bcrypt.hash(password, 10);
@@ -36,7 +36,7 @@ app.post('/api/instructor/register', async (req, res) => {
   });
 });
 
-// ✅ Login (shared for instructor and student)
+
 app.post('/api/login', (req, res) => {
   const { email, password } = req.body;
 
@@ -54,7 +54,7 @@ app.post('/api/login', (req, res) => {
   });
 });
 
-// ✅ Course creation
+
 app.post('/api/courses', (req, res) => {
   const { instructorId, courseName, courseNumber, section, term, startDate, endDate } = req.body;
 
@@ -72,7 +72,7 @@ app.post('/api/courses', (req, res) => {
   });
 });
 
-// ✅ Enroll student
+
 app.post('/api/enroll', (req, res) => {
   const { courseId, studentId } = req.body;
 
@@ -100,12 +100,13 @@ app.get('/ping', (req, res) => {
 
 
 
-// ✅ Modular routes
+
 app.use('/api/student', require('./routes/student'));
 app.use('/api/review', require('./routes/review'));
 
-// Start server
+
 const PORT = 5000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
+
