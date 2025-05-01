@@ -1,132 +1,45 @@
-document.addEventListener("DOMContentLoaded", function () {
-  const btnInstructorLogin = document.querySelector("#btnInstructorLogin");
+const express = require('express');
+const router = express.Router();
+const bcrypt = require('bcryptjs');
+const db = require('../db')
 
-  if (btnInstructorLogin) {
-    btnInstructorLogin.addEventListener("click", () => {
-      const email = document.querySelector("#txtInstructorLoginEmail").value.trim();
-      const password = document.querySelector("#txtInstructorLoginPassword").value.trim();
+router.post('/register', async (req, res) => {
+    const {firstName, lastName, email, password } = req.body
+    const role = 'instructor'
+    const hashed = await bcrypt.hash(password, 10)
 
-      const regEduEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.edu$/;
+    const insertQuery = `INSERT INTO tblUsers (FirstName, LastName, Email, Password, Role, CreationDateTime) VALUES (?, ?, ?, ?,?, datetime('now'))`;
+    db.run(insertQuery, [firstName, lastName, email, hashed, role], function(err) {
+        if (err) {
+            console.error(err.message);
+            res.status(500).json({ error: 'Failed to register user' });
+        } else {
+            res.status(201).json({ message: 'User registered successfully', userId: this.lastID });
+        }
+    })
+})
 
-      let blnError = false;
-      let message = "";
-
-      if (!regEduEmail.test(email)) {
-        blnError = true;
-        message += "<p>Invalid email format. Must be a .edu email.</p>";
+router.post('/login', (req, res) => {
+    const { email, password } = req.body;
+  
+    db.get(`SELECT * FROM tblUsers WHERE Email = ? AND Role = 'instructor'`, [email], async (err, user) => {
+      if (err || !user) {
+        return res.status(400).json({ error: "Invalid email" });
       }
-
-      if (password.length < 8) {
-        blnError = true;
-        message += "<p>Password must be at least 8 characters long.</p>";
-      }
-
-      if (blnError) {
-        Swal.fire({
-          title: "Login Error",
-          html: message,
-          icon: "error"
-        });
-      } else {
-    
-        fetch("http://localhost:5000/api/login", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ email, password })
-        })
-          .then(res => res.json())
-          .then(data => {
-            if (data.userId) {
-              Swal.fire({
-                title: "Login Successful!",
-                text: "Welcome back, instructor!",
-                icon: "success"
-              }).then(() => {
-                window.location.href = "instructor-dashboard.html";
-              });
-            } else {
-              Swal.fire("Login Failed", data.error || "Something went wrong", "error");
-            }
-          })
-          .catch(err => {
-            console.error(err);
-            Swal.fire("Error", "Unable to connect to server", "error");
-          });
-      }
+      const match = await bcrypt.compare(password, user.Password);
+      if (!match) return res.status(401).json({ error: "Invalid password" });
+  
+      db.run(`INSERT INTO tblSessions (UserID, StartDateTime, LastUsedDateTime, Status) VALUES (?, datetime('now'), datetime('now'), 'active')`, [user.UserID]);
+  
+      res.json({
+        message: "Login successful",
+        instructor: {
+          id: user.UserID,
+          name: user.FirstName + " " + user.LastName,
+          email: user.Email
+        }
+      });
     });
-  }
+  });
 
-  const btnInstructorRegister = document.querySelector("#btnInstructorRegister");
-
-  if (btnInstructorRegister) {
-    btnInstructorRegister.addEventListener("click", () => {
-      const firstName = document.querySelector("#txtInstructorFirstName").value.trim();
-      const lastName = document.querySelector("#txtInstructorLastName").value.trim();
-      const email = document.querySelector("#txtInstructorRegisterEmail").value.trim();
-      const password = document.querySelector("#txtInstructorRegisterPassword").value.trim();
-
-      const regEduEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.edu$/;
-      const regPassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-
-      let blnError = false;
-      let message = "";
-
-      if (firstName.length < 2) {
-        blnError = true;
-        message += "<p>First Name must be at least 2 characters long.</p>";
-      }
-
-      if (lastName.length < 2) {
-        blnError = true;
-        message += "<p>Last Name must be at least 2 characters long.</p>";
-      }
-
-      if (!regEduEmail.test(email)) {
-        blnError = true;
-        message += "<p>Invalid email. Must use a .edu domain.</p>";
-      }
-
-      if (!regPassword.test(password)) {
-        blnError = true;
-        message += "<p>Password must have 8 characters with upper, lower, number, and special character.</p>";
-      }
-
-      if (blnError) {
-        Swal.fire({
-          title: "Registration Error",
-          html: message,
-          icon: "error"
-        });
-      } else {
-       
-        fetch("http://localhost:5000/api/instructor/register", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ firstName, lastName, email, password })
-        })
-          .then(res => res.json())
-          .then(data => {
-            if (data.userId) {
-              Swal.fire({
-                title: "Registration Successful!",
-                text: "Instructor registered successfully!",
-                icon: "success"
-              }).then(() => {
-                window.location.href = "instructor-login.html";
-              });
-            } else {
-              Swal.fire("Registration Failed", data.error || "Something went wrong", "error");
-            }
-          })
-          .catch(err => {
-            console.error(err);
-            Swal.fire("Error", "Unable to connect to server", "error");
-          });
-      }
-    });
-  }
-});
+module.exports = router;

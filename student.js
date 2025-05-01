@@ -1,102 +1,60 @@
-document.addEventListener("DOMContentLoaded", function () {
-    const btnStudentLogin = document.querySelector("#btnStudentLogin");
-  
-    if (btnStudentLogin) {
-      btnStudentLogin.addEventListener("click", () => {
-        const email = document.querySelector("#txtStudentLoginEmail").value.trim();
-        const password = document.querySelector("#txtStudentLoginPassword").value.trim();
-  
-        const regEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-  
-        let blnError = false;
-        let message = "";
-  
-        if (!regEmail.test(email)) {
-          blnError = true;
-          message += "<p>Invalid email format. Please enter a valid email address.</p>";
-        }
-  
-        if (password.length < 8) {
-          blnError = true;
-          message += "<p>Password must be at least 8 characters long.</p>";
-        }
-  
-        if (blnError) {
-          Swal.fire({
-            title: "Login Error",
-            html: message,
-            icon: "error"
-          });
-        } else {
-          Swal.fire({
-            title: "Login Successful!",
-            text: "Welcome back!",
-            icon: "success"
-          }).then(() => {
-            window.location.href = "student-dashboard.html"; 
-          });
-        }
-      });
+const express = require('express');
+const sqlite3 = require('sqlite3').verbose();
+const bcrypt = require('bcryptjs');
+const router = express.Router();
+
+router.post('/register', async (req, res) => {
+  const { firstName, lastName, email, password, mobile, discord, teamsId } = req.body;
+  const role = 'student';
+  const hashed = await bcrypt.hash(password, 10);
+
+  const db = new sqlite3.Database('./backend.db');
+
+  db.get("SELECT * FROM tblUsers WHERE Email = ?", [email], (err, existing) => {
+    if (err) {
+      console.error(err.message);
+      db.close();
+      return res.status(500).json({ error: "Database error" });
     }
 
-    const btnStudentRegister = document.querySelector("#btnStudentRegister");
-
-    if (btnStudentRegister) {
-      btnStudentRegister.addEventListener("click", () => {
-        const firstName = document.querySelector("#txtStudentFirstName").value.trim();
-        const lastName = document.querySelector("#txtStudentLastName").value.trim();
-        const email = document.querySelector("#txtStudentRegisterEmail").value.trim();
-        const mobile = document.querySelector("#txtStudentMobileNumber").value.trim();
-        const teamsId = document.querySelector("#txtStudentTeams").value.trim();
-  
-        const regEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-        const regMobile = /^\d{10}$/; 
-        let blnError = false;
-        let message = "";
-  
-        if (firstName.length < 2) {
-          blnError = true;
-          message += "<p>First Name must be at least 2 characters long.</p>";
-        }
-  
-        if (lastName.length < 2) {
-          blnError = true;
-          message += "<p>Last Name must be at least 2 characters long.</p>";
-        }
-  
-        if (!regEmail.test(email)) {
-          blnError = true;
-          message += "<p>Invalid email format.</p>";
-        }
-  
-        if (!regMobile.test(mobile)) {
-          blnError = true;
-          message += "<p>Mobile Number must be exactly 10 digits.</p>";
-        }
-  
-        if (teamsId.length < 3) {
-          blnError = true;
-          message += "<p>Teams ID must be at least 3 characters long.</p>";
-        }
-  
-        if (blnError) {
-          Swal.fire({
-            title: "Registration Error",
-            html: message,
-            icon: "error"
-          });
-        } else {
-          Swal.fire({
-            title: "Registration Successful!",
-            text: "Welcome to the Peer Review Portal!",
-            icon: "success"
-          }).then(() => {
-            window.location.href = "student-login.html"; 
-          });
-        }
-      });
+    if (existing) {
+      db.close();
+      return res.status(400).json({ error: "Email already exists" });
     }
+
+    db.run(
+      `INSERT INTO tblUsers (FirstName, LastName, Email, Password, Role, CreationDateTime)
+       VALUES (?, ?, ?, ?, ?, datetime('now'))`,
+      [firstName, lastName, email, hashed, role],
+      function (err) {
+        if (err) {
+          console.error(err.message);
+          db.close();
+          return res.status(500).json({ error: "Failed to register user" });
+        }
+
+        const userId = this.lastID;
+
+        if (mobile) {
+          db.run(`INSERT INTO tblPhone (PhoneNumber, Status, UserEmail) VALUES (?, ?, ?)`,
+            [mobile, 'active', email]);
+        }
+
+        if (discord) {
+          db.run(`INSERT INTO tblSocials (SocialType, Username, UserEmail) VALUES (?, ?, ?)`,
+            ['discord', discord, email]);
+        }
+
+        if (teamsId) {
+          db.run(`INSERT INTO tblSocials (SocialType, Username, UserEmail) VALUES (?, ?, ?)`,
+            ['teams', teamsId, email]);
+        }
+
+        res.status(201).json({ userId });
+        db.close();
+      }
+    );
   });
+});
 
-
- //need to update regex for edu if it is required for students
+module.exports = router;
