@@ -1,72 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Instructor Register Portal</title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-  </head>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Instructor Register Portal</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
 
-  <body class="bg-light">
-    <div class="d-flex min-vh-100 justify-content-center align-items-center">
-      <form
-        class="card col-12 col-md-6 col-lg-4 p-4"
-        id="frmInstructorRegister"
-      >
-        <div class="card-body">
-          <h2 class="text-center mb-4">Instructor Register</h2>
+<body class="bg-light">
+  <div class="d-flex min-vh-100 justify-content-center align-items-center">
+    <form class="card col-12 col-md-6 col-lg-4 p-4" id="frmInstructorRegister">
+      <div class="card-body">
+        <h2 class="text-center mb-4">Instructor Register</h2>
 
-          <input
-            id="txtInstructorFirstName"
-            class="form-control mb-3"
-            type="text"
-            placeholder="First Name"
-            aria-label="Enter your First Name"
-          />
-          <input
-            id="txtInstructorLastName"
-            class="form-control mb-3"
-            type="text"
-            placeholder="Last Name"
-            aria-label="Enter your Last Name"
-          />
-          <input
-            id="txtInstructorRegisterEmail"
-            class="form-control mb-3"
-            type="email"
-            placeholder="Email Address (.edu required)"
-            aria-label="Enter your .edu Email Address"
-          />
-          <input
-            id="txtInstructorRegisterPassword"
-            class="form-control mb-3"
-            type="password"
-            placeholder="Password"
-            aria-label="Enter your Password"
-          />
+        <input id="txtInstructorFirstName" class="form-control mb-3" type="text" placeholder="First Name" aria-label="Enter your First Name">
+        <input id="txtInstructorLastName" class="form-control mb-3" type="text" placeholder="Last Name" aria-label="Enter your Last Name">
+        <input id="txtInstructorRegisterEmail" class="form-control mb-3" type="email" placeholder="Email Address (.edu required)" aria-label="Enter your .edu Email Address">
+        <input id="txtInstructorRegisterPassword" class="form-control mb-3" type="password" placeholder="Password" aria-label="Enter your Password">
 
-          <button
-            class="btn btn-success col-12 mt-3"
-            type="button"
-            id="btnInstructorRegister"
-          >
-            Register
-          </button>
+        <button class="btn btn-success col-12 mt-3" type="button" id="btnInstructorRegister">Register</button>
 
-          <div class="text-center mt-3">
-            <a href="landing.html" class="text-success small"
-              >← Back to Landing Page</a
-            >
-          </div>
+        <div class="text-center mt-3">
+          <a href="landing.html" class="text-success small">Back to Landing Page</a>
         </div>
-      </form>
-    </div>
+      </div>
+    </form>
+  </div>
 
-    <script src="instructorFrontEnd.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  </body>
+  <script src="instructorFrontEnd.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</body>
 </html>
