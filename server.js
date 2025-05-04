@@ -5,6 +5,7 @@ const app = express();
 
 app.use(express.static("public"));
 app.use(express.json());
+app.use(cors());
 
 const sqlite3 = require("sqlite3").verbose();
 const db = new sqlite3.Database("./backend.db", (err) => {
@@ -127,12 +128,17 @@ app.get("/api/instructor/all", (req, res) => {
     }
   );
 });
-app.get("/ping", (req, res) => {
-  res.send("Server is alive!");
-});
+
+
 
 app.use("/api/student", require("./routes/student"));
 app.use("/api/review", require("./routes/review"));
+app.use('/api/instructor', require('./routes/instructor'));
+
+
+
+
+
 
 const PORT = 5000;
 app.listen(PORT, () => {
