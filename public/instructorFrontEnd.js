@@ -34,11 +34,11 @@ document.addEventListener("DOMContentLoaded", function () {
           headers: {
             "Content-Type": "application/json"
           },
-          body: JSON.stringify({ email, password })
+          body: JSON.stringify({ email, password, role: "instructor" })
         })
           .then(res => res.json())
           .then(data => {
-            if (data.userId) {
+            if (data.userId && data.role === "instructor") {
               Swal.fire({
                 title: "Login Successful!",
                 text: "Welcome back, instructor!",

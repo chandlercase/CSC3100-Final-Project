@@ -44,11 +44,11 @@ app.post("/api/instructor/register", async (req, res) => {
 });
 
 app.post("/api/login", (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, role } = req.body;
 
   db.get(
-    "SELECT * FROM tblUsers WHERE Email = ?",
-    [email],
+    "SELECT * FROM tblUsers WHERE Email = ? AND Role = ?",
+    [email, role],
     async (err, user) => {
       if (err || !user) {
         return res.status(401).json({ error: "Invalid email" });
