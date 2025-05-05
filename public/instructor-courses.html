@@ -15,6 +15,9 @@
       <form class="d-flex flex-column flex-md-row gap-2" id="courseForm">
         <input type="text" id="courseName" class="form-control" placeholder="Course Name" required>
         <input type="text" id="courseDescription" class="form-control" placeholder="Course Term" required>
+        <select id="instructorSelect" class="form-select" required>
+          <option value="" disabled selected>Select Instructor</option>
+        </select>
         <button type="submit" class="btn btn-primary">Add Course</button>
       </form>
     </div>
@@ -22,20 +25,47 @@
     <div id="courseList" class="row g-4"></div>
   </div>
 
+  <!-- Edit Course Modal -->
+  <div class="modal fade" id="editCourseModal" tabindex="-1" aria-labelledby="editCourseModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editCourseModalLabel">Edit Course</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="editCourseForm">
+            <input type="hidden" id="editCourseId">
+            <div class="mb-3">
+              <label for="editCourseName" class="form-label">Course Name</label>
+              <input type="text" id="editCourseName" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label for="editCourseTerm" class="form-label">Course Term</label>
+              <input type="text" id="editCourseTerm" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     const courseForm = document.getElementById('courseForm');
     const courseList = document.getElementById('courseList');
+    const instructorSelect = document.getElementById('instructorSelect');
 
     function renderCourse(course) {
-      const card = document.createElement('div');
-      card.className = 'col-12 col-md-6 col-lg-4';
+      const card = document.createElement("div");
+      card.className = "col-12 col-md-6 col-lg-4";
       card.innerHTML = `
         <div class="card h-100 shadow-sm">
           <div class="card-body">
-            <h5 class="card-title" id="name-${course.CourseID}">${course.CourseName}</h5>
-            <p class="card-text" id="term-${course.CourseID}">${course.CourseTerm || 'No term listed'}</p>
-            <button class="btn btn-sm btn-warning me-2" onclick="editCourse(${course.CourseID})">Rename</button>
+            <h5 class="card-title">${course.CourseName}</h5>
+            <p class="card-text">${course.CourseTerm || "No term listed"}</p>
             <button class="btn btn-sm btn-danger" onclick="deleteCourse(${course.CourseID})">Delete</button>
+            <button class="btn btn-sm btn-secondary" onclick="openEditModal(${course.CourseID}, '${course.CourseName}', '${course.CourseTerm}')">Edit</button>
           </div>
         </div>
       `;
@@ -51,12 +81,19 @@
         });
     }
 
-    function deleteCourse(id) {
+    function deleteCourse(courseId) {
       if (confirm("Are you sure you want to delete this course?")) {
-        fetch(`http://localhost:5000/api/instructor/courses/${id}`, {
-          method: 'DELETE'
+        fetch(`http://localhost:5000/api/courses/${courseId}`, {
+          method: "DELETE",
         })
-        .then(() => fetchCourses());
+          .then((res) => {
+            if (res.ok) {
+              fetchCourses(); // Refresh the course list after deletion
+            } else {
+              alert("Failed to delete the course.");
+            }
+          })
+          .catch((err) => console.error("Error deleting course:", err));
       }
     }
 
@@ -73,14 +110,64 @@
       }
     }
 
+    function openEditModal(courseId, courseName, courseTerm) {
+      document.getElementById("editCourseId").value = courseId;
+      document.getElementById("editCourseName").value = courseName;
+      document.getElementById("editCourseTerm").value = courseTerm;
+
+      const editModal = new bootstrap.Modal(document.getElementById("editCourseModal"));
+      editModal.show();
+    }
+
+    document.getElementById("editCourseForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const courseId = document.getElementById("editCourseId").value;
+      const courseName = document.getElementById("editCourseName").value.trim();
+      const courseTerm = document.getElementById("editCourseTerm").value.trim();
+
+      fetch(`http://localhost:5000/api/courses/${courseId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ courseName, courseTerm }),
+      })
+        .then((res) => {
+          if (res.ok) {
+            fetchCourses(); // Refresh the course list
+            const editModal = bootstrap.Modal.getInstance(document.getElementById("editCourseModal"));
+            editModal.hide();
+          } else {
+            alert("Failed to update the course.");
+          }
+        })
+        .catch((err) => console.error("Error updating course:", err));
+    });
+
+    function fetchInstructors() {
+      fetch('http://localhost:5000/api/instructor/all')
+        .then(res => res.json())
+        .then(data => {
+          data.instructors.forEach(instructor => {
+            const option = document.createElement('option');
+            option.value = instructor.UserID;
+            option.textContent = `${instructor.FirstName} ${instructor.LastName}`;
+            instructorSelect.appendChild(option);
+          });
+        })
+        .catch(err => console.error('Error fetching instructors:', err));
+    }
+
     courseForm.addEventListener('submit', function (e) {
       e.preventDefault();
 
       const name = document.getElementById('courseName').value.trim();
       const description = document.getElementById('courseDescription').value.trim();
+      const instructorId = instructorSelect.value;
 
       const payload = {
-        instructorId: 1,
+        instructorId,
         courseName: name,
         courseNumber: "N/A",
         section: "1",
@@ -106,6 +193,7 @@
         });
     });
 
+    fetchInstructors();
     fetchCourses();
   </script>
 

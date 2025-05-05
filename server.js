@@ -104,6 +104,34 @@ app.post("/api/courses", (req, res) => {
   );
 });
 
+app.put("/api/courses/:courseId", (req, res) => {
+  const { courseId } = req.params;
+  const { courseName, courseNumber, section, term, startDate, endDate, instructorId } = req.body;
+
+  const updateQuery = `
+    UPDATE tblCourses
+    SET CourseName = ?, CourseNumber = ?, CourseSection = ?, CourseTerm = ?, StartDate = ?, EndDate = ?, InstructorID = ?
+    WHERE CourseID = ?
+  `;
+
+  db.run(
+    updateQuery,
+    [courseName, courseNumber, section, term, startDate, endDate, instructorId, courseId],
+    function (err) {
+      if (err) {
+        console.error(err.message);
+        return res.status(500).json({ error: "Failed to update course" });
+      }
+
+      if (this.changes === 0) {
+        return res.status(404).json({ error: "Course not found" });
+      }
+
+      res.status(200).json({ message: "Course updated successfully" });
+    }
+  );
+});
+
 app.post("/api/enroll", (req, res) => {
   const { courseId, studentId } = req.body;
 
@@ -116,29 +144,118 @@ app.post("/api/enroll", (req, res) => {
 });
 
 app.get("/api/instructor/all", (req, res) => {
-  db.all(
-    "SELECT UserID, FirstName, LastName, Email FROM tblUsers WHERE Role = ?",
-    ["instructor"],
-    (err, rows) => {
+  const query = `
+    SELECT UserID, FirstName, LastName, Email
+    FROM tblUsers
+    WHERE Role = 'instructor'
+  `;
+
+  db.all(query, [], (err, rows) => {
+    if (err) {
+      console.error(err.message);
+      return res.status(500).json({ error: 'Failed to fetch instructors' });
+    }
+    res.json({ instructors: rows });
+  });
+});
+
+app.post('/api/reviews', (req, res) => {
+  const { courseId, title, description, isPublic, dueDate, questions } = req.body;
+
+  const insertAssessmentQuery = `
+    INSERT INTO tblAssessments (CourseID, StartDate, EndDate, Name, Status, Type)
+    VALUES (?, datetime('now'), ?, ?, ?, ?)
+  `;
+
+  db.run(
+    insertAssessmentQuery,
+    [courseId, dueDate, title, isPublic ? 'Public' : 'Private', 'Review'],
+    function (err) {
       if (err) {
         console.error(err.message);
-        return res.status(500).json({ error: "Failed to fetch instructors" });
+        return res.status(500).json({ error: 'Failed to save review' });
       }
-      res.json({ instructors: rows });
+
+      const assessmentId = this.lastID;
+
+      const insertQuestionQuery = `
+        INSERT INTO tblAssessmentQuestions (AssessmentID, QuestionType, Options, QuestionNarrative, HelperText)
+        VALUES (?, ?, ?, ?, ?)
+      `;
+
+      const questionPromises = questions.map((question) => {
+        return new Promise((resolve, reject) => {
+          db.run(
+            insertQuestionQuery,
+            [assessmentId, question.questionType, null, question.questionText, null],
+            function (err) {
+              if (err) reject(err);
+              else resolve();
+            }
+          );
+        });
+      });
+
+      Promise.all(questionPromises)
+        .then(() => {
+          res.status(201).json({ success: true, message: 'Review saved successfully' });
+        })
+        .catch((err) => {
+          console.error(err.message);
+          res.status(500).json({ error: 'Failed to save questions' });
+        });
     }
   );
 });
 
+app.get('/api/courses/:instructorId', (req, res) => {
+  const { instructorId } = req.params;
 
+  const query = `
+    SELECT CourseID, CourseName, CourseNumber, CourseSection
+    FROM tblCourses
+    WHERE InstructorID = ?
+  `;
+
+  db.all(query, [instructorId], (err, rows) => {
+    if (err) {
+      console.error(err.message);
+      return res.status(500).json({ error: 'Failed to fetch courses' });
+    }
+    res.json({ courses: rows });
+  });
+});
+
+app.delete("/api/courses/:courseId", (req, res) => {
+  const { courseId } = req.params;
+
+  const deleteEnrollmentsQuery = `DELETE FROM tblEnrollments WHERE CourseID = ?`;
+  const deleteCourseQuery = `DELETE FROM tblCourses WHERE CourseID = ?`;
+
+  db.run(deleteEnrollmentsQuery, [courseId], function (err) {
+    if (err) {
+      console.error(err.message);
+      return res.status(500).json({ error: "Failed to delete enrollments for the course" });
+    }
+
+    db.run(deleteCourseQuery, [courseId], function (err) {
+      if (err) {
+        console.error(err.message);
+        return res.status(500).json({ error: "Failed to delete course" });
+      }
+
+      if (this.changes === 0) {
+        return res.status(404).json({ error: "Course not found" });
+      }
+
+      res.status(200).json({ message: "Course deleted successfully" });
+    });
+  });
+});
 
 app.use("/api/student", require("./routes/student"));
 app.use("/api/review", require("./routes/review"));
 app.use('/api/instructor', require('./routes/instructor'));
-
-
-
-
-
 
 const PORT = 5000;
 app.listen(PORT, () => {

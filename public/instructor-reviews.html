@@ -143,6 +143,11 @@
             ></button>
           </div>
           <div class="modal-body">
+            <label for="courseSelect" class="form-label">Select Course</label>
+            <select id="courseSelect" class="form-select mb-3" required>
+              <option value="" disabled selected>Select a course</option>
+            </select>
+
             <input
               type="text"
               class="form-control mb-3"
@@ -163,9 +168,7 @@
                   type="checkbox"
                   id="publicToggle"
                 />
-                <label class="form-check-label" for="publicToggle"
-                  >Enabled</label
-                >
+                <label class="form-check-label" for="publicToggle">Enabled</label>
               </div>
             </div>
 
@@ -223,6 +226,94 @@
 
         container.appendChild(qBlock);
       }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        const instructorId = sessionStorage.getItem('instructorId');
+        const courseSelect = document.getElementById('courseSelect');
+
+        fetch(`http://localhost:5000/api/courses/${instructorId}`)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error('Failed to fetch courses');
+            }
+            return response.json();
+          })
+          .then((data) => {
+            console.log('Fetched courses:', data); // Debugging
+            if (data.courses && data.courses.length > 0) {
+              data.courses.forEach((course) => {
+                const option = document.createElement('option');
+                option.value = course.CourseID;
+                option.textContent = `${course.CourseName} (${course.CourseNumber} - Section ${course.CourseSection})`;
+                courseSelect.appendChild(option);
+              });
+            } else {
+              const option = document.createElement('option');
+              option.value = '';
+              option.textContent = 'No courses available';
+              option.disabled = true;
+              courseSelect.appendChild(option);
+            }
+          })
+          .catch((error) => {
+            console.error('Error fetching courses:', error);
+            Swal.fire('Error', 'Failed to load courses. Please try again later.', 'error');
+          });
+      });
+
+      function saveReview() {
+        const courseId = document.getElementById('courseSelect').value;
+        const reviewTitle = document.querySelector('input[placeholder="Review Title"]').value.trim();
+        const reviewDescription = document.querySelector('textarea[placeholder="Review Description"]').value.trim();
+        const isPublic = document.querySelector('#publicToggle').checked;
+        const dueDate = document.querySelector('#dueDate').value;
+        const questions = Array.from(document.querySelectorAll('.question-block')).map((block, index) => {
+          return {
+            questionText: block.querySelector('input[type="text"]').value.trim(),
+            questionType: block.querySelector('select').value,
+          };
+        });
+
+        if (!courseId) {
+          Swal.fire('Error', 'Please select a course.', 'error');
+          return;
+        }
+
+        const reviewData = {
+          courseId,
+          title: reviewTitle,
+          description: reviewDescription,
+          isPublic,
+          dueDate,
+          questions,
+        };
+
+        fetch('http://localhost:5000/api/reviews', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(reviewData),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              Swal.fire('Success', 'Review saved successfully!', 'success');
+              location.reload();
+            } else {
+              Swal.fire('Error', data.error || 'Failed to save review', 'error');
+            }
+          })
+          .catch((error) => {
+            console.error(error);
+            Swal.fire('Error', 'An error occurred while saving the review', 'error');
+          });
+      }
+
+      document.querySelector('form.modal-content').addEventListener('submit', (e) => {
+        e.preventDefault();
+        saveReview();
+      });
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
