@@ -84,8 +84,12 @@ document.addEventListener("DOMContentLoaded", function () {
         .value.trim();
       const teamsId = document.querySelector("#txtStudentTeams").value.trim();
       const discord = ""; // If you add a Discord field, update this line
+      const password = document
+          .querySelector("#txtStudentRegisterPassword")
+          .value.trim();
 
       const regEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      const regPassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
       const regMobile = /^\d{10}$/;
 
       let blnError = false;
@@ -116,6 +120,11 @@ document.addEventListener("DOMContentLoaded", function () {
         message += "<p>Teams ID must be at least 3 characters long.</p>";
       }
 
+      if (!regPassword.test(password)) {
+        blnError = true;
+        message += "<p>Password must have 8 characters with upper, lower, number, and special character(@$!%*?&).</p>";
+      }
+
       if (blnError) {
         Swal.fire({
           title: "Registration Error",
@@ -123,10 +132,6 @@ document.addEventListener("DOMContentLoaded", function () {
           icon: "error",
         });
       } else {
-        // Temporary hardcoded password until you add a password field
-        const password = document
-          .querySelector("#txtStudentRegisterPassword")
-          .value.trim();
 
         fetch("http://localhost:5000/api/student/register", {
           method: "POST",

@@ -90,7 +90,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       if (!regPassword.test(password)) {
         blnError = true;
-        message += "<p>Password must have 8 characters with upper, lower, number, and special character.</p>";
+        message += "<p>Password must have 8 characters with upper, lower, number, and special character(@$!%*?&).</p>";
       }
 
       if (blnError) {
