@@ -87,6 +87,14 @@ router.get('/groups/:courseId', (req, res) => {
   });
 });
 
+router.get('/students/all', (req, res) => {
+  const sql = `SELECT UserID, FirstName, LastName, Email FROM tblUsers WHERE Role = 'student'`;
+  db.all(sql, [], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ students: rows });
+  });
+});
+
 router.post('/groups/:groupId/members', (req, res) => {
   const { studentId } = req.body;
   const { groupId } = req.params;
