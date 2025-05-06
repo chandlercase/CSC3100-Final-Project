@@ -282,6 +282,26 @@ app.delete("/api/courses/:courseId", (req, res) => {
   });
 });
 
+app.get('/api/reviews/:instructorId', (req, res) => {
+  const { instructorId } = req.params;
+
+  const query = `
+    SELECT a.AssessmentID, a.Name AS ReviewName, a.EndDate, a.Status, a.Type, c.CourseName
+    FROM tblAssessments a
+    JOIN tblCourses c ON a.CourseID = c.CourseID
+    WHERE c.InstructorID = ?
+    ORDER BY a.EndDate DESC
+  `;
+
+  db.all(query, [instructorId], (err, rows) => {
+    if (err) {
+      console.error(err.message);
+      return res.status(500).json({ error: 'Failed to fetch reviews' });
+    }
+    res.json({ reviews: rows });
+  });
+});
+
 app.use("/api/student", require("./routes/student"));
 app.use("/api/review", require("./routes/review"));
 app.use('/api/instructor', require('./routes/instructor'));

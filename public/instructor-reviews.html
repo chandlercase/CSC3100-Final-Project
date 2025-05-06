@@ -12,6 +12,7 @@
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap"
       rel="stylesheet"
     />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
       body {
         font-family: "Poppins", sans-serif;
@@ -261,13 +262,59 @@
           });
       });
 
+      document.addEventListener('DOMContentLoaded', () => {
+        const instructorId = sessionStorage.getItem('instructorId');
+        const reviewsContainer = document.querySelector('.main-content .row');
+
+        // Fetch reviews for the instructor
+        fetch(`http://localhost:5000/api/reviews/${instructorId}`)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error('Failed to fetch reviews');
+            }
+            return response.json();
+          })
+          .then((data) => {
+            console.log('Fetched reviews:', data); // Debugging
+            reviewsContainer.innerHTML = ''; // Clear existing content
+
+            if (data.reviews && data.reviews.length > 0) {
+              data.reviews.forEach((review) => {
+                const reviewCard = document.createElement('div');
+                reviewCard.className = 'col-md-6 col-lg-4 mb-4';
+                reviewCard.innerHTML = `
+                  <div class="card shadow-sm">
+                    <div class="card-body">
+                      <h5 class="card-title">${review.ReviewName}</h5>
+                      <p class="card-text">Course: ${review.CourseName}</p>
+                      <p class="card-text">Due: ${new Date(review.EndDate).toLocaleDateString()}</p>
+                      <span class="badge bg-${review.Status === 'Public' ? 'success' : 'secondary'}">${review.Status}</span>
+                      <div class="mt-3">
+                        <a href="#" class="btn btn-sm btn-outline-primary">View</a>
+                        <a href="#" class="btn btn-sm btn-outline-danger">Delete</a>
+                      </div>
+                    </div>
+                  </div>
+                `;
+                reviewsContainer.appendChild(reviewCard);
+              });
+            } else {
+              reviewsContainer.innerHTML = '<p>No reviews available.</p>';
+            }
+          })
+          .catch((error) => {
+            console.error('Error fetching reviews:', error);
+            Swal.fire('Error', 'Failed to load reviews. Please try again later.', 'error');
+          });
+      });
+
       function saveReview() {
         const courseId = document.getElementById('courseSelect').value;
         const reviewTitle = document.querySelector('input[placeholder="Review Title"]').value.trim();
         const reviewDescription = document.querySelector('textarea[placeholder="Review Description"]').value.trim();
         const isPublic = document.querySelector('#publicToggle').checked;
         const dueDate = document.getElementById('dueDate').value;
-        const questions = Array.from(document.querySelectorAll('.question-block')).map((block, index) => {
+        const questions = Array.from(document.querySelectorAll('.question-block')).map((block) => {
           return {
             questionText: block.querySelector('input[type="text"]').value.trim(),
             questionType: block.querySelector('select').value,
@@ -304,8 +351,16 @@
                 icon: 'success',
               }).then(() => {
                 // Close the modal
-                const createReviewModal = bootstrap.Modal.getInstance(document.getElementById('createReviewModal'));
-                createReviewModal.hide();
+                const modalElement = document.getElementById('createReviewModal');
+                const createReviewModal = bootstrap.Modal.getInstance(modalElement);
+                if (createReviewModal) {
+                  createReviewModal.hide();
+                } else {
+                  console.error('Modal instance not found.');
+                }
+
+                // Optionally reload the page or refresh the reviews list
+                location.reload();
               });
             } else {
               Swal.fire('Error', data.error || 'Failed to save review', 'error');
