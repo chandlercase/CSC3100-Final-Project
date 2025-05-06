@@ -201,13 +201,11 @@
 
       function addStudent(groupId) {
   const studentList = document.getElementById("studentList");
-  studentList.innerHTML = ""; // Clear the list
-
-  // Fetch all students
+  studentList.innerHTML = ""; 
   fetch("http://localhost:5000/api/instructor/students/all")
     .then((res) => res.json())
     .then((data) => {
-      // Populate the modal with the list of students
+
       data.students.forEach((student) => {
         const studentItem = document.createElement("li");
         studentItem.className = "list-group-item d-flex justify-content-between align-items-center";
@@ -218,7 +216,6 @@
         studentList.appendChild(studentItem);
       });
 
-      // Show the modal
       const modal = new bootstrap.Modal(document.getElementById("addStudentModal"));
       modal.show();
     })
@@ -239,7 +236,7 @@ function confirmAddStudent(groupId, studentId) {
       alert("Student added successfully!");
       const modal = bootstrap.Modal.getInstance(document.getElementById("addStudentModal"));
       modal.hide();
-      loadTeams(); // Reload the teams to reflect the changes
+      loadTeams();
     })
     .catch((err) => {
       console.error("Error adding student:", err);
