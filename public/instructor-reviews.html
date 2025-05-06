@@ -266,7 +266,7 @@
         const reviewTitle = document.querySelector('input[placeholder="Review Title"]').value.trim();
         const reviewDescription = document.querySelector('textarea[placeholder="Review Description"]').value.trim();
         const isPublic = document.querySelector('#publicToggle').checked;
-        const dueDate = document.querySelector('#dueDate').value;
+        const dueDate = document.getElementById('dueDate').value;
         const questions = Array.from(document.querySelectorAll('.question-block')).map((block, index) => {
           return {
             questionText: block.querySelector('input[type="text"]').value.trim(),
@@ -298,8 +298,15 @@
           .then((response) => response.json())
           .then((data) => {
             if (data.success) {
-              Swal.fire('Success', 'Review saved successfully!', 'success');
-              location.reload();
+              Swal.fire({
+                title: 'Success!',
+                text: 'Review created successfully!',
+                icon: 'success',
+              }).then(() => {
+                // Close the modal
+                const createReviewModal = bootstrap.Modal.getInstance(document.getElementById('createReviewModal'));
+                createReviewModal.hide();
+              });
             } else {
               Swal.fire('Error', data.error || 'Failed to save review', 'error');
             }
