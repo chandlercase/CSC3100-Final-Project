@@ -43,6 +43,7 @@ document.addEventListener("DOMContentLoaded", function () {
           .then((res) => res.json())
           .then((data) => {
             if (data.userId) {
+              localStorage.setItem("studentId", data.userId);
               Swal.fire({
                 title: "Login Successful!",
                 text: `Welcome back, ${data.name}!`,
