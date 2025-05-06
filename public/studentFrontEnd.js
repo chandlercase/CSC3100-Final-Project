@@ -42,7 +42,7 @@ document.addEventListener("DOMContentLoaded", function () {
         })
           .then((res) => res.json())
           .then((data) => {
-            if (data.userId && data.role === "student") {
+            if (data.userId) {
               Swal.fire({
                 title: "Login Successful!",
                 text: `Welcome back, ${data.name}!`,

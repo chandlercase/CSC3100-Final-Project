@@ -89,7 +89,8 @@ router.get('/groups/:courseId', (req, res) => {
 
 router.post('/groups/:groupId/members', (req, res) => {
   const { studentId } = req.body;
-  db.run(`INSERT INTO tblGroupMembers (GroupID, UserID) VALUES (?, ?)`, [req.params.groupId, studentId], function (err) {
+  const { groupId } = req.params;
+  db.run(`INSERT INTO tblGroupMembers (GroupID, UserID) VALUES (?, ?)`, [groupId, studentId], function (err) {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ added: true });
   });

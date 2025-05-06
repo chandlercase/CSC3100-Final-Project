@@ -100,4 +100,15 @@ router.post("/login", (req, res) => {
   );
 });
 
+router.get('/all', (req, res) => {
+  const query = `SELECT UserID, FirstName, LastName, Email FROM tblUsers WHERE Role = 'student'`;
+  db.all(query, [], (err, rows) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json({ students: rows });
+  });
+});
+
+
 module.exports = router;
