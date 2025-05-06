@@ -110,5 +110,60 @@ router.get('/all', (req, res) => {
   });
 });
 
+router.get('/groups/:studentId', (req, res) => {
+  const { studentId } = req.params;
+
+  const query = `
+    SELECT g.GroupID, g.GroupName, gm.UserID AS MemberID, u.FirstName AS MemberFirstName, u.LastName AS MemberLastName
+    FROM tblGroupMembers gm
+    JOIN tblCoursGroups g ON gm.GroupID = g.GroupID
+    JOIN tblUsers u ON gm.UserID = u.UserID
+    WHERE g.GroupID IN (
+      SELECT GroupID
+      FROM tblGroupMembers
+      WHERE UserID = ?
+    )
+    ORDER BY g.GroupID, u.FirstName
+  `;
+
+  const db = new sqlite3.Database('./backend.db');
+  db.all(query, [studentId], (err, rows) => {
+    if (err) {
+      console.error(err.message);
+      return res.status(500).json({ error: 'Failed to fetch groups' });
+    }
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'No groups found for this student' });
+    }
+
+    const groups = rows.reduce((acc, row) => {
+      const group = acc.find(g => g.GroupID === row.GroupID);
+      if (group) {
+        group.Members.push({
+          MemberID: row.MemberID,
+          FirstName: row.MemberFirstName,
+          LastName: row.MemberLastName,
+        });
+      } else {
+        acc.push({
+          GroupID: row.GroupID,
+          GroupName: row.GroupName,
+          Members: [
+            {
+              MemberID: row.MemberID,
+              FirstName: row.MemberFirstName,
+              LastName: row.MemberLastName,
+            },
+          ],
+        });
+      }
+      return acc;
+    }, []);
+
+    res.json({ groups });
+  });
+});
+
 
 module.exports = router;
