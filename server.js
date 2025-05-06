@@ -75,8 +75,8 @@ app.post("/api/courses", (req, res) => {
     instructorId,
     courseName,
     courseNumber,
-    section,
-    term,
+    courseSection,
+    courseTerm,
     startDate,
     endDate,
   } = req.body;
@@ -87,7 +87,7 @@ app.post("/api/courses", (req, res) => {
 
   db.run(
     insertQuery,
-    [courseName, courseNumber, section, term, startDate, endDate, instructorId],
+    [courseName, courseNumber, courseSection, courseTerm, startDate, endDate, instructorId],
     function (err) {
       if (err) {
         console.error(err.message);
@@ -104,9 +104,17 @@ app.post("/api/courses", (req, res) => {
   );
 });
 
-app.put("/api/courses/:courseId", (req, res) => {
+app.put('/api/courses/:courseId', (req, res) => {
   const { courseId } = req.params;
-  const { courseName, courseNumber, section, term, startDate, endDate, instructorId } = req.body;
+  const {
+    courseName,
+    courseNumber,
+    courseSection,
+    courseTerm,
+    startDate,
+    endDate,
+    instructorId,
+  } = req.body;
 
   const updateQuery = `
     UPDATE tblCourses
@@ -116,18 +124,18 @@ app.put("/api/courses/:courseId", (req, res) => {
 
   db.run(
     updateQuery,
-    [courseName, courseNumber, section, term, startDate, endDate, instructorId, courseId],
+    [courseName, courseNumber, courseSection, courseTerm, startDate, endDate, instructorId, courseId],
     function (err) {
       if (err) {
         console.error(err.message);
-        return res.status(500).json({ error: "Failed to update course" });
+        return res.status(500).json({ error: 'Failed to update course' });
       }
 
       if (this.changes === 0) {
-        return res.status(404).json({ error: "Course not found" });
+        return res.status(404).json({ error: 'Course not found' });
       }
 
-      res.status(200).json({ message: "Course updated successfully" });
+      res.status(200).json({ message: 'Course updated successfully' });
     }
   );
 });
@@ -212,7 +220,7 @@ app.get('/api/courses/:instructorId', (req, res) => {
   const { instructorId } = req.params;
 
   const query = `
-    SELECT CourseID, CourseName, CourseNumber, CourseSection
+    SELECT CourseID, CourseName, CourseNumber, CourseSection, CourseTerm, StartDate, EndDate, InstructorID
     FROM tblCourses
     WHERE InstructorID = ?
   `;
@@ -223,6 +231,27 @@ app.get('/api/courses/:instructorId', (req, res) => {
       return res.status(500).json({ error: 'Failed to fetch courses' });
     }
     res.json({ courses: rows });
+  });
+});
+
+app.get('/api/course/:courseId', (req, res) => {
+  const { courseId } = req.params;
+
+  const query = `
+    SELECT CourseID, CourseName, CourseNumber, CourseSection, CourseTerm, StartDate, EndDate, InstructorID
+    FROM tblCourses
+    WHERE CourseID = ?
+  `;
+
+  db.get(query, [courseId], (err, row) => {
+    if (err) {
+      console.error(err.message);
+      return res.status(500).json({ error: 'Failed to fetch course' });
+    }
+    if (!row) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+    res.json(row);
   });
 });
 
