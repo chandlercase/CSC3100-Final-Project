@@ -302,6 +302,71 @@ app.get('/api/reviews/:instructorId', (req, res) => {
   });
 });
 
+app.get('/api/review/:reviewId', (req, res) => {
+  const { reviewId } = req.params;
+
+  const query = `
+    SELECT a.AssessmentID, a.Name AS ReviewName, a.EndDate, a.Status, a.Type, a.CourseID, c.CourseName
+    FROM tblAssessments a
+    JOIN tblCourses c ON a.CourseID = c.CourseID
+    WHERE a.AssessmentID = ?
+  `;
+
+  db.get(query, [reviewId], (err, row) => {
+    if (err) {
+      console.error(err.message);
+      return res.status(500).json({ error: 'Failed to fetch review' });
+    }
+    if (!row) {
+      return res.status(404).json({ error: 'Review not found' });
+    }
+    res.json(row);
+  });
+});
+
+app.put('/api/review/:reviewId', (req, res) => {
+  const { reviewId } = req.params;
+  const { title, dueDate, status } = req.body;
+
+  const query = `
+    UPDATE tblAssessments
+    SET Name = ?, EndDate = ?, Status = ?
+    WHERE AssessmentID = ?
+  `;
+
+  db.run(query, [title, dueDate, status, reviewId], function (err) {
+    if (err) {
+      console.error(err.message);
+      return res.status(500).json({ error: 'Failed to update review' });
+    }
+
+    if (this.changes === 0) {
+      return res.status(404).json({ error: 'Review not found' });
+    }
+
+    res.status(200).json({ message: 'Review updated successfully' });
+  });
+});
+
+app.delete('/api/review/:reviewId', (req, res) => {
+  const { reviewId } = req.params;
+
+  const query = `DELETE FROM tblAssessments WHERE AssessmentID = ?`;
+
+  db.run(query, [reviewId], function (err) {
+    if (err) {
+      console.error(err.message);
+      return res.status(500).json({ error: 'Failed to delete review' });
+    }
+
+    if (this.changes === 0) {
+      return res.status(404).json({ error: 'Review not found' });
+    }
+
+    res.status(200).json({ message: 'Review deleted successfully' });
+  });
+});
+
 app.use("/api/student", require("./routes/student"));
 app.use("/api/review", require("./routes/review"));
 app.use('/api/instructor', require('./routes/instructor'));
