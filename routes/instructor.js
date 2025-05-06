@@ -88,7 +88,6 @@ router.get('/groups/:courseId', (req, res) => {
 });
 
 router.get('/students/all', (req, res) => {
-  console.log('Fetching all students'); // Debugging log
   const sql = `SELECT UserID, FirstName, LastName, Email FROM tblUsers WHERE Role = 'student'`;
   db.all(sql, [], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
