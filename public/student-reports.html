@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Feedback & Reports</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f8f9fa;
+    }
+    .sidebar {
+      background-color: #4b9cd3;
+      color: white;
+      min-height: 100vh;
+      padding-top: 30px;
+    }
+    .sidebar a {
+      color: white;
+      text-decoration: none;
+      display: block;
+      padding: 10px 20px;
+      transition: background 0.3s;
+    }
+    .sidebar a:hover,
+    .sidebar a.active {
+      background-color: #3b8ac7;
+    }
+    .main-content {
+      padding: 25px;
+    }
+    .report-card {
+      background: white;
+      border: 1px solid #dee2e6;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 25px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+    .feedback-block {
+      background-color: #f1f3f5;
+      border-radius: 6px;
+      padding: 15px;
+      margin-bottom: 10px;
+    }
+    .section-title {
+      margin-top: 30px;
+      margin-bottom: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <!-- Sidebar -->
+      <nav class="col-md-3 col-lg-2 sidebar d-md-block">
+        <h4 class="text-center mb-4">Student</h4>
+        <a href="student-dashboard.html">Dashboard</a>
+        <a href="student-review.html">My Reviews</a>
+        <a href="student-teams.html">My Groups</a>
+        <a href="student-feeedback.html">My Feedback</a>
+        <a href="student-reports.html" class="active">My Reports</a>
+        <a href="logout.html">Log Out</a>
+      </nav>
+
+      <!-- Main Content -->
+      <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+        <div class="main-content">
+          <h3 class="mb-4">My Feedback & Reports</h3>
+
+          <!-- Report Entry -->
+          <div class="report-card">
+            <div class="d-flex justify-content-between align-items-center">
+              <h5 class="mb-0">Team Review: Project 1</h5>
+              <span class="badge bg-success">Score: 92</span>
+            </div>
+            <p class="text-muted">Submitted: April 5, 2025</p>
+
+            <!-- Public Feedback -->
+            <h6 class="section-title">Public Feedback from Teammates</h6>
+            <div class="feedback-block">"You were super organized and kept us on track! Great job managing the deadline."
+            </div>
+            <div class="feedback-block">"I appreciated how you clarified everyone's roles early on."
+            </div>
+
+            <!-- Instructor Feedback -->
+            <h6 class="section-title">Instructor Notes</h6>
+            <div class="feedback-block">
+              "Excellent contribution across the board. Keep speaking up in meetings — your insights are valuable!"
+            </div>
+          </div>
+
+          <!-- Additional Reports can go here... -->
+
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

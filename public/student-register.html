@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student Register Portal</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body class="bg-light">
+    <div class="d-flex min-vh-100 justify-content-center align-items-center">
+      <form class="card col-12 col-md-6 col-lg-4 p-4" id="frmStudentRegister">
+        <div class="card-body">
+          <h2 class="text-center mb-4">Student Register</h2>
+
+          <input
+            id="txtStudentFirstName"
+            class="form-control mb-3"
+            type="text"
+            placeholder="First Name"
+            aria-label="Please enter your First Name here"
+          />
+          <input
+            id="txtStudentLastName"
+            class="form-control mb-3"
+            type="text"
+            placeholder="Last Name"
+            aria-label="Please enter your Last Name here"
+          />
+          <input
+            id="txtStudentRegisterEmail"
+            class="form-control mb-3"
+            type="email"
+            placeholder="Email Address"
+            aria-label="Please enter your Email Address here"
+          />
+          <input
+            id="txtStudentMobileNumber"
+            class="form-control mb-3"
+            type="text"
+            placeholder="Mobile Number"
+            aria-label="Please enter your Mobile Number here"
+          />
+          <input
+            id="txtStudentTeams"
+            class="form-control mb-3"
+            type="text"
+            placeholder="Teams ID"
+            aria-label="Please enter your Teams ID here"
+          />
+          <input
+            id="txtStudentRegisterPassword"
+            class="form-control mb-3"
+            type="password"
+            placeholder="Password"
+            aria-label="Enter a strong password"
+          />
+
+          <button
+            class="btn btn-primary col-12 mt-3"
+            type="button"
+            id="btnStudentRegister"
+          >
+            Register
+          </button>
+
+          <div class="text-center mt-3">
+            <a href="landing.html" class="text-primary small"
+              >← Back to Landing Page</a
+            >
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <script src="studentFrontEnd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  </body>
+</html>
