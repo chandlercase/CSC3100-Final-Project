@@ -101,6 +101,23 @@
       </div>
     </div>
 
+    <div class="modal fade" id="addStudentModal" tabindex="-1" aria-labelledby="addStudentModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addStudentModalLabel">Add Student to Team</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <ul id="studentList" class="list-group"></ul>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script>
       const courseSelect = document.getElementById("courseSelect");
       const teamList = document.getElementById("teamList");
@@ -120,41 +137,41 @@
       courseSelect.addEventListener("change", loadTeams);
 
       function loadTeams() {
-        const courseId = courseSelect.value;
-        if (!courseId) return;
+  const courseId = courseSelect.value;
+  if (!courseId) return;
 
-        fetch(`http://localhost:5000/api/instructor/groups/${courseId}`)
+  fetch(`http://localhost:5000/api/instructor/groups/${courseId}`)
+    .then((res) => res.json())
+    .then((data) => {
+      teamList.innerHTML = "";
+      data.groups.forEach((group) => {
+        fetch(`http://localhost:5000/api/instructor/groups/${group.GroupID}/members`)
           .then((res) => res.json())
-          .then((data) => {
-            teamList.innerHTML = "";
-            data.groups.forEach((group) => {
-              fetch(`http://localhost:5000/api/instructor/groups/${group.GroupID}/members`)
-                .then((res) => res.json())
-                .then((membersData) => {
-                  const members = membersData.members || [];
-                  const memberItems = members
-                    .map(
-                      (m) => `<li class="list-group-item d-flex justify-content-between align-items-center">
-                        ${m.FirstName} ${m.LastName} (${m.Email})
-                        <button class="btn btn-sm btn-outline-danger" onclick="removeStudent(${group.GroupID}, ${m.UserID})">Remove</button>
-                      </li>`
-                    )
-                    .join("");
+          .then((membersData) => {
+            const members = membersData.members || [];
+            const memberItems = members
+              .map(
+                (m) => `<li class="list-group-item d-flex justify-content-between align-items-center">
+                  ${m.FirstName} ${m.LastName} (${m.Email})
+                  <button class="btn btn-sm btn-outline-danger" onclick="removeStudent(${group.GroupID}, ${m.UserID})">Remove</button>
+                </li>`
+              )
+              .join("");
 
-                  const card = document.createElement("div");
-                  card.className = "team-card";
-                  card.innerHTML = `
-                    <div class="d-flex justify-content-between align-items-center">
-                      <h5 class="mb-0">${group.GroupName}</h5>
-                    </div>
-                    <ul class="list-group mb-3">${memberItems}</ul>
-                    <button class="btn btn-sm btn-outline-primary" onclick="addStudent(${group.GroupID})">Add Student</button>
-                  `;
-                  teamList.appendChild(card);
-                });
-            });
+            const card = document.createElement("div");
+            card.className = "team-card";
+            card.innerHTML = `
+              <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">${group.GroupName}</h5>
+              </div>
+              <ul class="list-group mb-3">${memberItems}</ul>
+              <button class="btn btn-sm btn-outline-primary" onclick="addStudent(${group.GroupID})">Add Student</button>
+            `;
+            teamList.appendChild(card);
           });
-      }
+      });
+    });
+}
 
       teamForm.addEventListener("submit", (e) => {
         e.preventDefault();
@@ -183,16 +200,52 @@
       }
 
       function addStudent(groupId) {
-        const studentId = prompt("Enter student ID to add:");
-        if (!studentId) return;
-        fetch(`http://localhost:5000/api/instructor/groups/${groupId}/members`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ studentId }),
-        })
-          .then((res) => res.json())
-          .then(() => loadTeams());
-      }
+  const studentList = document.getElementById("studentList");
+  studentList.innerHTML = ""; // Clear the list
+
+  // Fetch all students
+  fetch("http://localhost:5000/api/instructor/students/all")
+    .then((res) => res.json())
+    .then((data) => {
+      // Populate the modal with the list of students
+      data.students.forEach((student) => {
+        const studentItem = document.createElement("li");
+        studentItem.className = "list-group-item d-flex justify-content-between align-items-center";
+        studentItem.innerHTML = `
+          <span>${student.FirstName} ${student.LastName} (${student.Email})</span>
+          <button class="btn btn-sm btn-outline-primary" onclick="confirmAddStudent(${groupId}, ${student.UserID})">Add</button>
+        `;
+        studentList.appendChild(studentItem);
+      });
+
+      // Show the modal
+      const modal = new bootstrap.Modal(document.getElementById("addStudentModal"));
+      modal.show();
+    })
+    .catch((err) => {
+      console.error("Error fetching students:", err);
+      alert("Failed to load students. Please try again later.");
+    });
+}
+
+function confirmAddStudent(groupId, studentId) {
+  fetch(`http://localhost:5000/api/instructor/groups/${groupId}/members`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ studentId }),
+  })
+    .then((res) => res.json())
+    .then(() => {
+      alert("Student added successfully!");
+      const modal = bootstrap.Modal.getInstance(document.getElementById("addStudentModal"));
+      modal.hide();
+      loadTeams(); // Reload the teams to reflect the changes
+    })
+    .catch((err) => {
+      console.error("Error adding student:", err);
+      alert("Failed to add student. Please try again.");
+    });
+}
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   </body>
